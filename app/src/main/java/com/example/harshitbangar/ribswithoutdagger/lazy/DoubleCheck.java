@@ -16,16 +16,13 @@
 
 package com.example.harshitbangar.ribswithoutdagger.lazy;
 
-import dagger.Lazy;
 import javax.inject.Provider;
-
-import static dagger.internal.Preconditions.checkNotNull;
 
 /**
  * A {@link Lazy} and {@link Provider} implementation that memoizes the value returned from a
  * delegate using the double-check idiom described in Item 71 of <i>Effective Java 2</i>.
  */
-public abstract class DoubleCheck<T> implements Provider<T>, Lazy<T> {
+public abstract class DoubleCheck<T> implements Provider<T> {
   private volatile T instance = null;
 
   @Override

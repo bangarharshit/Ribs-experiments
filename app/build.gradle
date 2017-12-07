@@ -32,8 +32,6 @@ dependencies {
     compile 'com.uber.rib:rib-android:0.9.1'
     testCompile 'com.uber.rib:rib-test-utils:0.9.1'
     compile 'com.jakewharton.rxbinding2:rxbinding:2.0.0'
-    compile 'com.google.dagger:dagger:2.12'
-    annotationProcessor 'com.google.dagger:dagger-compiler:2.12'
     compile 'com.android.support:percent:27+'
     testCompile 'junit:junit:4.12'
     compile 'com.google.guava:guava:11.0.2'

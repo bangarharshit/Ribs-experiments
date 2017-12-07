@@ -16,16 +16,13 @@
 
 package com.example.harshitbangar.ribswithoutdagger.lazy;
 
-import dagger.Lazy;
 import javax.inject.Provider;
-
-import static dagger.internal.Preconditions.checkNotNull;
 
 /**
  * A {@link Provider} implementation that memoizes the result of another {@link Provider} using
  * simple lazy initialization, not the double-checked lock pattern.
  */
-public abstract class SingleCheck<T> implements Provider<T>, Lazy<T> {
+public abstract class SingleCheck<T> implements Provider<T> {
 
   private volatile T instance = null;
 
