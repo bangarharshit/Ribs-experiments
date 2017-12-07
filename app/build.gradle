@@ -1,0 +1,42 @@
+apply plugin: 'com.android.application'
+
+android {
+    compileSdkVersion 27
+    buildToolsVersion "27.0.0"
+    defaultConfig {
+        applicationId "com.example.harshitbangar.ribswithoutdagger"
+        minSdkVersion 16
+        targetSdkVersion 27
+        versionCode 1
+        versionName "1.0"
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+}
+
+dependencies {
+    compile fileTree(dir: 'libs', include: ['*.jar'])
+    androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
+        exclude group: 'com.android.support', module: 'support-annotations'
+        exclude group: 'com.google.code.findbugs'
+    })
+    annotationProcessor 'com.google.auto.value:auto-value:1.5'
+    compile 'com.android.support:appcompat-v7:27.+'
+    compile 'com.uber.rib:rib-workflow:0.9.1'
+    annotationProcessor 'com.uber.rib:rib-compiler-test:0.9.1'
+    compile 'com.uber.rib:rib-android:0.9.1'
+    testCompile 'com.uber.rib:rib-test-utils:0.9.1'
+    compile 'com.jakewharton.rxbinding2:rxbinding:2.0.0'
+    compile 'com.google.dagger:dagger:2.12'
+    annotationProcessor 'com.google.dagger:dagger-compiler:2.12'
+    compile 'com.android.support:percent:27+'
+    testCompile 'junit:junit:4.12'
+    compile 'com.google.guava:guava:11.0.2'
+    provided 'com.jakewharton.auto.value:auto-value-annotations:1.5'
+    annotationProcessor 'com.uber:rave-compiler:2.0.0'
+}
