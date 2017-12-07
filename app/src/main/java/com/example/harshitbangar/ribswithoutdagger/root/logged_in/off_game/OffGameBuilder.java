@@ -18,22 +18,13 @@ package com.example.harshitbangar.ribswithoutdagger.root.logged_in.off_game;
 
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
-import com.uber.rib.core.InteractorBaseComponent;
-import com.uber.rib.core.ViewBuilder;
+import com.example.harshitbangar.ribswithoutdagger.R;
 import com.example.harshitbangar.ribswithoutdagger.root.UserName;
 import com.example.harshitbangar.ribswithoutdagger.root.logged_in.GameKey;
 import com.example.harshitbangar.ribswithoutdagger.root.logged_in.ScoreStream;
-import com.example.harshitbangar.ribswithoutdagger.R;
-import dagger.Binds;
-import dagger.BindsInstance;
-import dagger.Provides;
-import java.lang.annotation.Retention;
+import com.uber.rib.core.InteractorBaseComponent;
+import com.uber.rib.core.ViewBuilder;
 import java.util.List;
-import javax.inject.Named;
-import javax.inject.Qualifier;
-import javax.inject.Scope;
-
-import static java.lang.annotation.RetentionPolicy.CLASS;
 
 /**
  * Builder for the {@link OffGameScope}.
@@ -54,11 +45,7 @@ public class OffGameBuilder
   public OffGameRouter build(ViewGroup parentViewGroup) {
     OffGameView view = createView(parentViewGroup);
     OffGameInteractor interactor = new OffGameInteractor();
-    Component component = DaggerOffGameBuilder_Component.builder()
-        .parentComponent(getDependency())
-        .view(view)
-        .interactor(interactor)
-        .build();
+    Component component = new Component(view, interactor, getDependency());
     return component.offgameRouter();
   }
 
@@ -68,59 +55,41 @@ public class OffGameBuilder
   }
 
   public interface ParentComponent {
-    @Named("player_one") UserName playerOne();
-    @Named("player_two") UserName playerTwo();
+    UserName playerOne();
+    UserName playerTwo();
     OffGameInteractor.Listener listener();
     ScoreStream scoreStream();
     List<? extends GameKey> gameKeys();
   }
 
-  @dagger.Module
-  public abstract static class Module {
+  static class Component implements InteractorBaseComponent<OffGameInteractor> {
 
-    @OffGameScope
-    @Binds
-    abstract OffGameInteractor.OffGamePresenter presenter(OffGameView view);
+    private final OffGameView view;
+    private final OffGameInteractor interactor;
+    private final ParentComponent parentComponent;
 
-    @OffGameScope
-    @Provides
-    static OffGameRouter router(
-        Component component,
+    public Component(
         OffGameView view,
-        OffGameInteractor interactor) {
-      return new OffGameRouter(view, interactor, component);
+        OffGameInteractor interactor,
+        ParentComponent parentComponent) {
+      this.view = view;
+      this.interactor = interactor;
+      this.parentComponent = parentComponent;
     }
-  }
 
-  @OffGameScope
-  @dagger.Component(modules = Module.class,
-      dependencies = ParentComponent.class)
-  interface Component extends InteractorBaseComponent<OffGameInteractor>, BuilderComponent {
-
-    @dagger.Component.Builder
-    interface Builder {
-
-      @BindsInstance
-      Builder interactor(OffGameInteractor interactor);
-
-      @BindsInstance
-      Builder view(OffGameView view);
-
-      Builder parentComponent(ParentComponent component);
-
-      Component build();
+    @Override public void inject(OffGameInteractor interactor) {
+      interactor.gameNames = parentComponent.gameKeys();
+      interactor.listener = parentComponent.listener();
+      interactor.playerOne = parentComponent.playerOne();
+      interactor.playerTwo = parentComponent.playerTwo();
+      interactor.presenter = view;
+      interactor.setPresenter(view);
+      interactor.scoreStream = parentComponent.scoreStream();
     }
+
+    OffGameRouter offgameRouter() {
+      return new OffGameRouter(view, interactor, this);
+    }
+
   }
-
-  interface BuilderComponent {
-    OffGameRouter offgameRouter();
-  }
-
-  @Scope
-  @Retention(CLASS)
-  @interface OffGameScope { }
-
-  @Qualifier
-  @Retention(CLASS)
-  @interface OffGameInternal { }
 }

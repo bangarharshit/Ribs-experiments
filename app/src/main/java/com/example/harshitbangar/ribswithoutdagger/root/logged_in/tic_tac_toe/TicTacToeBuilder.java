@@ -18,19 +18,10 @@ package com.example.harshitbangar.ribswithoutdagger.root.logged_in.tic_tac_toe;
 
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
+import com.example.harshitbangar.ribswithoutdagger.R;
+import com.example.harshitbangar.ribswithoutdagger.root.UserName;
 import com.uber.rib.core.InteractorBaseComponent;
 import com.uber.rib.core.ViewBuilder;
-import com.example.harshitbangar.ribswithoutdagger.root.UserName;
-import com.example.harshitbangar.ribswithoutdagger.R;
-import dagger.Binds;
-import dagger.BindsInstance;
-import dagger.Provides;
-import java.lang.annotation.Retention;
-import javax.inject.Named;
-import javax.inject.Qualifier;
-import javax.inject.Scope;
-
-import static java.lang.annotation.RetentionPolicy.CLASS;
 
 /**
  * Builder for the {@link TicTacToeScope}.
@@ -51,11 +42,7 @@ public class TicTacToeBuilder
   public TicTacToeRouter build(ViewGroup parentViewGroup) {
     TicTacToeView view = createView(parentViewGroup);
     TicTacToeInteractor interactor = new TicTacToeInteractor();
-    Component component = DaggerTicTacToeBuilder_Component.builder()
-        .parentComponent(getDependency())
-        .view(view)
-        .interactor(interactor)
-        .build();
+    Component component = new Component(getDependency(), interactor, view);
     return component.tictactoeRouter();
   }
 
@@ -66,61 +53,37 @@ public class TicTacToeBuilder
 
   public interface ParentComponent {
     TicTacToeInteractor.Listener ticTacToeListener();
-    @Named("player_one") UserName playerOne();
-    @Named("player_two") UserName playerTwo();
+    UserName playerOne();
+    UserName playerTwo();
   }
 
-  @dagger.Module
-  public abstract static class Module {
+  static class Component implements InteractorBaseComponent<TicTacToeInteractor> {
 
-    @TicTacToeScope
-    @Binds
-    abstract TicTacToeInteractor.TicTacToePresenter presenter(TicTacToeView view);
+    private final ParentComponent parentComponent;
+    private final TicTacToeInteractor interactor;
+    private final TicTacToeView view;
 
-    @TicTacToeScope
-    @Provides
-    static TicTacToeRouter router(
-        Component component,
-        TicTacToeView view,
-        TicTacToeInteractor interactor) {
-      return new TicTacToeRouter(view, interactor, component);
+    public Component(
+        ParentComponent parentComponent,
+        TicTacToeInteractor ticTacToeInteractor,
+        TicTacToeView ticTacToeView) {
+      this.parentComponent = parentComponent;
+      this.interactor = ticTacToeInteractor;
+      this.view = ticTacToeView;
     }
-  }
 
-  @TicTacToeScope
-  @dagger.Component(modules = Module.class,
-      dependencies = ParentComponent.class)
-  interface Component extends InteractorBaseComponent<TicTacToeInteractor>, BuilderComponent {
-
-    @dagger.Component.Builder
-    interface Builder {
-
-      @BindsInstance
-      Builder interactor(TicTacToeInteractor interactor);
-
-      @BindsInstance
-      Builder view(TicTacToeView view);
-
-      Builder parentComponent(ParentComponent component);
-
-      Component build();
+    public TicTacToeRouter tictactoeRouter() {
+      return new TicTacToeRouter(view, interactor, this);
     }
-  }
 
-  interface BuilderComponent {
+    @Override public void inject(TicTacToeInteractor interactor) {
+      interactor.presenter = view;
+      interactor.setPresenter(view);
 
-    TicTacToeRouter tictactoeRouter();
-  }
-
-  @Scope
-  @Retention(CLASS)
-  @interface TicTacToeScope {
-
-  }
-
-  @Qualifier
-  @Retention(CLASS)
-  @interface TicTacToeInternal {
-
+      interactor.listener = parentComponent.ticTacToeListener();
+      interactor.playerOne = parentComponent.playerOne();
+      interactor.playerTwo = parentComponent.playerTwo();
+      interactor.board = new Board();
+    }
   }
 }

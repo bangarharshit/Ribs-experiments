@@ -2,18 +2,9 @@ package com.example.harshitbangar.ribswithoutdagger.root.logged_in.random_winner
 
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
+import com.example.harshitbangar.ribswithoutdagger.root.UserName;
 import com.uber.rib.core.InteractorBaseComponent;
 import com.uber.rib.core.ViewBuilder;
-import com.example.harshitbangar.ribswithoutdagger.root.UserName;
-import dagger.Binds;
-import dagger.BindsInstance;
-import dagger.Provides;
-import java.lang.annotation.Retention;
-import javax.inject.Named;
-import javax.inject.Qualifier;
-import javax.inject.Scope;
-
-import static java.lang.annotation.RetentionPolicy.CLASS;
 
 /**
  * Builder for the {@link RandomWinnerScope}. Not a real game. This just picks a random winner than exits.
@@ -35,11 +26,7 @@ public class RandomWinnerBuilder
     public RandomWinnerRouter build(ViewGroup parentViewGroup) {
         RandomWinnerView view = createView(parentViewGroup);
         RandomWinnerInteractor interactor = new RandomWinnerInteractor();
-        Component component = DaggerRandomWinnerBuilder_Component.builder()
-                .parentComponent(getDependency())
-                .view(view)
-                .interactor(interactor)
-                .build();
+        Component component = new Component(view, interactor, getDependency());
         return component.randomwinnerRouter();
     }
 
@@ -51,52 +38,34 @@ public class RandomWinnerBuilder
 
     public interface ParentComponent {
         RandomWinnerInteractor.Listener randomWinnerListener();
-        @Named("player_one") UserName playerOne();
-        @Named("player_two") UserName playerTwo();
+        UserName playerOne();
+        UserName playerTwo();
     }
 
-    @dagger.Module
-    public abstract static class Module {
+    static class Component implements InteractorBaseComponent<RandomWinnerInteractor> {
 
-        @RandomWinnerScope
-        @Binds
-        abstract RandomWinnerInteractor.RandomWinnerPresenter presenter(RandomWinnerView view);
+        private final ParentComponent parentComponent;
+        private final RandomWinnerView randomWinnerView;
+        private final RandomWinnerInteractor randomWinnerInteractor;
 
-        @RandomWinnerScope
-        @Provides
-        static RandomWinnerRouter router(
-            Component component,
-            RandomWinnerView view,
-            RandomWinnerInteractor interactor) {
-            return new RandomWinnerRouter(view, interactor, component);
+        public Component(
+            RandomWinnerView randomWinnerView,
+            RandomWinnerInteractor randomWinnerInteractor,
+            ParentComponent parentComponent) {
+            this.randomWinnerView = randomWinnerView;
+            this.randomWinnerInteractor = randomWinnerInteractor;
+            this.parentComponent = parentComponent;
+        }
+
+        public RandomWinnerRouter randomwinnerRouter() {
+            return new RandomWinnerRouter(randomWinnerView, randomWinnerInteractor, this);
+        }
+
+        @Override public void inject(RandomWinnerInteractor interactor) {
+            randomWinnerInteractor.setPresenter(randomWinnerView);
+            randomWinnerInteractor.listener = parentComponent.randomWinnerListener();
+            randomWinnerInteractor.playerOne = parentComponent.playerOne();
+            randomWinnerInteractor.playerTwo = parentComponent.playerTwo();
         }
     }
-
-    @RandomWinnerScope
-    @dagger.Component(modules = Module.class,
-           dependencies = ParentComponent.class)
-    interface Component extends InteractorBaseComponent<RandomWinnerInteractor>, BuilderComponent {
-
-        @dagger.Component.Builder
-        interface Builder {
-            @BindsInstance
-            Builder interactor(RandomWinnerInteractor interactor);
-            @BindsInstance
-            Builder view(RandomWinnerView view);
-            Builder parentComponent(ParentComponent component);
-            Component build();
-        }
-    }
-
-    interface BuilderComponent  {
-        RandomWinnerRouter randomwinnerRouter();
-    }
-
-    @Scope
-    @Retention(CLASS)
-    @interface RandomWinnerScope { }
-
-    @Qualifier
-    @Retention(CLASS)
-    @interface RandomWinnerInternal { }
 }

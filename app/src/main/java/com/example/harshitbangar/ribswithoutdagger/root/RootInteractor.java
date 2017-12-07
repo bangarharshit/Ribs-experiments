@@ -19,7 +19,6 @@ package com.example.harshitbangar.ribswithoutdagger.root;
 import android.support.annotation.Nullable;
 import com.example.harshitbangar.ribswithoutdagger.root.logged_out.LoggedOutInteractor;
 import com.uber.rib.core.Bundle;
-import com.uber.rib.core.Interactor;
 import com.uber.rib.core.NonInjectableInteractor;
 import com.uber.rib.core.RibInteractor;
 

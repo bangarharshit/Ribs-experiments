@@ -17,15 +17,14 @@
 package com.example.harshitbangar.ribswithoutdagger.root.logged_in;
 
 import android.support.annotation.Nullable;
-import com.uber.rib.core.Bundle;
-import com.uber.rib.core.EmptyPresenter;
-import com.uber.rib.core.Interactor;
-import com.uber.rib.core.RibInteractor;
 import com.example.harshitbangar.ribswithoutdagger.root.UserName;
-import com.example.harshitbangar.ribswithoutdagger.root.logged_in.LoggedInBuilder.LoggedInInternal;
 import com.example.harshitbangar.ribswithoutdagger.root.logged_in.off_game.OffGameInteractor;
 import com.example.harshitbangar.ribswithoutdagger.root.logged_in.random_winner.RandomWinnerInteractor;
 import com.example.harshitbangar.ribswithoutdagger.root.logged_in.tic_tac_toe.TicTacToeInteractor;
+import com.uber.rib.core.Bundle;
+import com.uber.rib.core.EmptyPresenter;
+import com.uber.rib.core.NonInjectableInteractor;
+import com.uber.rib.core.RibInteractor;
 import java.util.List;
 import javax.inject.Inject;
 
@@ -34,11 +33,11 @@ import javax.inject.Inject;
  */
 @RibInteractor
 public class LoggedInInteractor
-    extends Interactor<EmptyPresenter, LoggedInRouter>
+    extends NonInjectableInteractor<EmptyPresenter, LoggedInRouter>
     implements LoggedInActionableItem {
 
-  @Inject @LoggedInInternal MutableScoreStream scoreStream;
-  @Inject @LoggedInInternal List<GameProvider> gameProviders;
+  @Inject MutableScoreStream scoreStream;
+  @Inject List<GameProvider> gameProviders;
 
   @Override
   protected void didBecomeActive(@Nullable Bundle savedInstanceState) {

@@ -17,11 +17,7 @@
 package com.example.harshitbangar.ribswithoutdagger.root.logged_in;
 
 import android.view.ViewGroup;
-import com.google.common.collect.Lists;
-import com.uber.rib.core.Builder;
-import com.uber.rib.core.EmptyPresenter;
-import com.uber.rib.core.InteractorBaseComponent;
-import com.uber.rib.core.ViewRouter;
+import com.example.harshitbangar.ribswithoutdagger.lazy.SingleCheck;
 import com.example.harshitbangar.ribswithoutdagger.root.RootView;
 import com.example.harshitbangar.ribswithoutdagger.root.UserName;
 import com.example.harshitbangar.ribswithoutdagger.root.logged_in.off_game.OffGameBuilder;
@@ -30,16 +26,13 @@ import com.example.harshitbangar.ribswithoutdagger.root.logged_in.random_winner.
 import com.example.harshitbangar.ribswithoutdagger.root.logged_in.random_winner.RandomWinnerInteractor;
 import com.example.harshitbangar.ribswithoutdagger.root.logged_in.tic_tac_toe.TicTacToeBuilder;
 import com.example.harshitbangar.ribswithoutdagger.root.logged_in.tic_tac_toe.TicTacToeInteractor;
-import dagger.Binds;
-import dagger.BindsInstance;
-import dagger.Provides;
-import java.lang.annotation.Retention;
+import com.google.common.collect.Lists;
+import com.uber.rib.core.Builder;
+import com.uber.rib.core.EmptyPresenter;
+import com.uber.rib.core.InteractorBaseComponent;
+import com.uber.rib.core.ViewRouter;
 import java.util.List;
-import javax.inject.Named;
-import javax.inject.Qualifier;
-import javax.inject.Scope;
-
-import static java.lang.annotation.RetentionPolicy.CLASS;
+import javax.inject.Provider;
 
 public class LoggedInBuilder extends Builder<LoggedInRouter, LoggedInBuilder.ParentComponent> {
 
@@ -54,13 +47,7 @@ public class LoggedInBuilder extends Builder<LoggedInRouter, LoggedInBuilder.Par
    */
   public LoggedInRouter build(UserName playerOne, UserName playerTwo) {
     LoggedInInteractor interactor = new LoggedInInteractor();
-    Component component = DaggerLoggedInBuilder_Component.builder()
-        .parentComponent(getDependency())
-        .interactor(interactor)
-        .playerOne(playerOne)
-        .playerTwo(playerTwo)
-        .build();
-
+    Component component = new Component(getDependency(), playerOne, playerTwo, interactor);
     return component.loggedinRouter();
   }
 
@@ -70,63 +57,83 @@ public class LoggedInBuilder extends Builder<LoggedInRouter, LoggedInBuilder.Par
     RootView rootView();
   }
 
-  @dagger.Module
-  public abstract static class Module {
+  public class Component
+      implements InteractorBaseComponent<LoggedInInteractor>,
+      OffGameBuilder.ParentComponent,
+      TicTacToeBuilder.ParentComponent,
+      RandomWinnerBuilder.ParentComponent {
 
-    @LoggedInScope
-    @Provides
-    static EmptyPresenter presenter() {
-      return new EmptyPresenter();
+    private final UserName player1;
+    private final UserName player2;
+    private final LoggedInInteractor interactor;
+    private final RootView rootView;
+    private final Provider<MutableScoreStream> mutableScoreStream;
+    private final Provider<OffGameInteractor.Listener> offGameListenerProvider;
+    private final Provider<LoggedInInteractor.GameListener> gameListenerProvider;
+    private List<GameProvider> gameProviders;
+    private final EmptyPresenter emptyPresenter;
+
+    public Component(
+        ParentComponent parentComponent,
+        final UserName player1, final UserName player2,
+        LoggedInInteractor loggedInInteractor) {
+      this.player1 = player1;
+      this.player2 = player2;
+      this.interactor = loggedInInteractor;
+      this.rootView = parentComponent.rootView();
+      mutableScoreStream = new SingleCheck<MutableScoreStream>() {
+        @Override public MutableScoreStream create() {
+          return new MutableScoreStream(player1, player2);
+        }
+      };
+      offGameListenerProvider = new SingleCheck<OffGameInteractor.Listener>() {
+        @Override public LoggedInInteractor.OffGameListener create() {
+          return interactor.new OffGameListener();
+        }
+      };
+      gameListenerProvider = new SingleCheck<LoggedInInteractor.GameListener>() {
+        @Override public LoggedInInteractor.GameListener create() {
+          return interactor.new GameListener();
+        }
+      };
+      emptyPresenter = new EmptyPresenter();
     }
 
-    @LoggedInScope
-    @Provides
-    static LoggedInRouter router(Component component, LoggedInInteractor interactor,
-        RootView rootView) {
-      return new LoggedInRouter(
-          interactor,
-          component,
-          rootView,
-          new OffGameBuilder(component),
-          new TicTacToeBuilder(component));
+    @Override public RandomWinnerInteractor.Listener randomWinnerListener() {
+      return gameListenerProvider.get();
     }
 
-    @LoggedInScope
-    @LoggedInInternal
-    @Provides
-    static MutableScoreStream mutableScoreStream(
-        @Named("player_one") UserName playerOne,
-        @Named("player_two") UserName playerTwo) {
-      return new MutableScoreStream(playerOne, playerTwo);
+    @Override public TicTacToeInteractor.Listener ticTacToeListener() {
+      return gameListenerProvider.get();
     }
 
-    @LoggedInScope
-    @Provides
-    static OffGameInteractor.Listener listener(LoggedInInteractor interactor) {
-      return interactor.new OffGameListener();
+    @Override public UserName playerOne() {
+      return player1;
     }
 
-    @LoggedInScope
-    @Binds
-    abstract RandomWinnerInteractor.Listener randomWinnerListener(LoggedInInteractor.GameListener listener);
-
-    @LoggedInScope
-    @Binds
-    abstract TicTacToeInteractor.Listener ticTacToeGameListener(LoggedInInteractor.GameListener listener);
-
-    @LoggedInScope
-    @Provides
-    static LoggedInInteractor.GameListener ticTacToeListener(LoggedInInteractor interactor) {
-      return interactor.new GameListener();
+    @Override public UserName playerTwo() {
+      return player2;
     }
 
-    @LoggedInScope
-    @Binds
-    abstract ScoreStream scoreStream(@LoggedInInternal MutableScoreStream mutableScoreStream);
+    @Override public OffGameInteractor.Listener listener() {
+      return offGameListenerProvider.get();
+    }
 
-    @LoggedInInternal
-    @Provides
-    static List<GameProvider> gameProviders(final Component component) {
+    @Override public ScoreStream scoreStream() {
+      return mutableScoreStream.get();
+    }
+
+    @Override public List<? extends GameKey> gameKeys() {
+      return gameProviders;
+    }
+
+    @Override public void inject(LoggedInInteractor interactor) {
+      interactor.gameProviders = gameProviders;
+      interactor.scoreStream = mutableScoreStream.get();
+      interactor.setPresenter(emptyPresenter);
+    }
+
+    List<GameProvider> gameProviders(final Component component) {
       // Decorate the game builders with a "name" key so we can treat them generically elsewhere.
       GameProvider ticTacToeGame = new GameProvider() {
         @Override
@@ -153,53 +160,14 @@ public class LoggedInBuilder extends Builder<LoggedInRouter, LoggedInBuilder.Par
       return Lists.newArrayList(ticTacToeGame, randomWinnerGame);
     }
 
-    @LoggedInScope
-    @Binds
-    abstract List<? extends GameKey> gameKeys(@LoggedInInternal List<GameProvider> gameProviders);
-  }
-
-  @LoggedInScope
-  @dagger.Component(modules = Module.class, dependencies = ParentComponent.class)
-  public interface Component
-      extends InteractorBaseComponent<LoggedInInteractor>,
-      BuilderComponent,
-      OffGameBuilder.ParentComponent,
-      TicTacToeBuilder.ParentComponent,
-      RandomWinnerBuilder.ParentComponent {
-
-    @dagger.Component.Builder
-    interface Builder {
-
-      @BindsInstance
-      Builder interactor(LoggedInInteractor interactor);
-
-      Builder parentComponent(ParentComponent component);
-
-      Component build();
-
-      @BindsInstance
-      Builder playerOne(@Named("player_one") UserName playerOne);
-
-      @BindsInstance
-      Builder playerTwo(@Named("player_two") UserName playerTwo);
+    public LoggedInRouter loggedinRouter() {
+      this.gameProviders = gameProviders(this);
+      return new LoggedInRouter(
+          interactor,
+          this,
+          rootView,
+          new OffGameBuilder(this),
+          new TicTacToeBuilder(this));
     }
-
-  }
-
-  interface BuilderComponent {
-    LoggedInRouter loggedinRouter();
-  }
-
-  @Scope
-  @Retention(CLASS)
-  @interface LoggedInScope {
-
-  }
-
-
-  @Qualifier
-  @Retention(CLASS)
-  @interface LoggedInInternal {
-
   }
 }

@@ -17,28 +17,26 @@
 package com.example.harshitbangar.ribswithoutdagger.root.logged_in.tic_tac_toe;
 
 import android.support.annotation.Nullable;
-import com.uber.rib.core.Bundle;
-import com.uber.rib.core.Interactor;
-import com.uber.rib.core.RibInteractor;
 import com.example.harshitbangar.ribswithoutdagger.root.UserName;
 import com.example.harshitbangar.ribswithoutdagger.root.logged_in.tic_tac_toe.Board.MarkerType;
+import com.uber.rib.core.Bundle;
+import com.uber.rib.core.NonInjectableInteractor;
+import com.uber.rib.core.RibInteractor;
 import io.reactivex.Observable;
 import io.reactivex.functions.Consumer;
-import javax.inject.Inject;
-import javax.inject.Named;
 
 /**
  * Coordinates Business Logic for {@link TicTacToeScope}.
  */
 @RibInteractor
 public class TicTacToeInteractor
-    extends Interactor<TicTacToeInteractor.TicTacToePresenter, TicTacToeRouter> {
+    extends NonInjectableInteractor<TicTacToeInteractor.TicTacToePresenter, TicTacToeRouter> {
 
-  @Inject Board board;
-  @Inject Listener listener;
-  @Inject TicTacToePresenter presenter;
-  @Inject @Named("player_one") UserName playerOne;
-  @Inject @Named("player_two") UserName playerTwo;
+  Board board;
+  Listener listener;
+  TicTacToePresenter presenter;
+  UserName playerOne;
+  UserName playerTwo;
 
   private MarkerType currentPlayer = MarkerType.CROSS;
 

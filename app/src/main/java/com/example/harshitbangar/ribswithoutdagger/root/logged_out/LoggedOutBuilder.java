@@ -18,17 +18,9 @@ package com.example.harshitbangar.ribswithoutdagger.root.logged_out;
 
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
+import com.example.harshitbangar.ribswithoutdagger.R;
 import com.uber.rib.core.InteractorBaseComponent;
 import com.uber.rib.core.ViewBuilder;
-import com.example.harshitbangar.ribswithoutdagger.R;
-import dagger.Binds;
-import dagger.BindsInstance;
-import dagger.Provides;
-import java.lang.annotation.Retention;
-import javax.inject.Qualifier;
-import javax.inject.Scope;
-
-import static java.lang.annotation.RetentionPolicy.CLASS;
 
 /**
  * Builder for the {@link LoggedOutScope}.
@@ -50,7 +42,7 @@ public class LoggedOutBuilder
     LoggedOutView view = createView(parentViewGroup);
     LoggedOutInteractor interactor = new LoggedOutInteractor();
     Component component = new Component(getDependency(), view, interactor);
-    return component.loggedoutRouter();
+    return component.createLoggedOutRouter();
   }
 
   @Override
@@ -65,7 +57,6 @@ public class LoggedOutBuilder
 
   class Component implements InteractorBaseComponent<LoggedOutInteractor> {
     private final ParentComponent parentComponent;
-    private final LoggedOutRouter loggedOutRouter;
     private final LoggedOutInteractor loggedOutInteractor;
     private final LoggedOutView loggedOutView;
 
@@ -76,17 +67,16 @@ public class LoggedOutBuilder
       this.loggedOutInteractor = interactor;
       this.loggedOutView = view;
       this.parentComponent = parentComponent;
-      this.loggedOutRouter = new LoggedOutRouter(view, interactor, this);
     }
 
-    public LoggedOutRouter loggedoutRouter() {
-      return loggedOutRouter;
+    public LoggedOutRouter createLoggedOutRouter() {
+      return new LoggedOutRouter(loggedOutView, loggedOutInteractor, this);
     }
 
     @Override public void inject(LoggedOutInteractor interactor) {
-      loggedOutInteractor.presenter = loggedOutView;
-      loggedOutInteractor.setPresenter(loggedOutView);
-      loggedOutInteractor.listener = parentComponent.listener();
+      interactor.setPresenter(loggedOutView);
+      interactor.presenter = loggedOutView;
+      interactor.listener = parentComponent.listener();
     }
   }
 }

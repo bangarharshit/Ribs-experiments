@@ -45,7 +45,7 @@ public class RootBuilder extends ViewBuilder<RootView, RootRouter, RootBuilder.P
     RootView view = createView(parentViewGroup);
     RootInteractor interactor = new RootInteractor();
     Component component = new Component(interactor, view);
-    return component.rootRouter;
+    return component.createRouter();
   }
 
   @Override
@@ -64,7 +64,7 @@ public class RootBuilder extends ViewBuilder<RootView, RootRouter, RootBuilder.P
 
     private final RootView rootView;
     private final SingleCheck<LoggedOutInteractor.Listener> loggedOutListener;
-    private final RootRouter rootRouter;
+    private final RootInteractor rootInteractor;
 
     public Component(final RootInteractor rootInteractor, final RootView rootView) {
       this.rootView = rootView;
@@ -73,13 +73,7 @@ public class RootBuilder extends ViewBuilder<RootView, RootRouter, RootBuilder.P
           return rootInteractor.new LoggedOutListener();
         }
       };
-      // Note we are escaping this before object construction. This is safe here but an anti-pattern.
-      rootRouter = new RootRouter(
-          rootView,
-          rootInteractor,
-          this,
-          new LoggedOutBuilder(this),
-          new LoggedInBuilder(this));
+      this.rootInteractor = rootInteractor;
     }
 
     @Override public RootView rootView() {
@@ -93,6 +87,15 @@ public class RootBuilder extends ViewBuilder<RootView, RootRouter, RootBuilder.P
     @Override public void inject(RootInteractor interactor) {
       interactor.presenter = rootView;
       interactor.setPresenter(rootView);
+    }
+
+    public RootRouter createRouter() {
+      return new RootRouter(
+          rootView,
+          rootInteractor,
+          this,
+          new LoggedOutBuilder(this),
+          new LoggedInBuilder(this));
     }
   }
 }

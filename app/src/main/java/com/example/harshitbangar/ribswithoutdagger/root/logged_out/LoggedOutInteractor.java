@@ -20,12 +20,10 @@ import android.support.annotation.Nullable;
 import android.util.Pair;
 import com.example.harshitbangar.ribswithoutdagger.root.UserName;
 import com.uber.rib.core.Bundle;
-import com.uber.rib.core.Interactor;
 import com.uber.rib.core.NonInjectableInteractor;
 import com.uber.rib.core.RibInteractor;
 import io.reactivex.Observable;
 import io.reactivex.functions.Consumer;
-import javax.inject.Inject;
 
 /**
  * Coordinates Business Logic for {@link LoggedOutBuilder.LoggedOutScope}.

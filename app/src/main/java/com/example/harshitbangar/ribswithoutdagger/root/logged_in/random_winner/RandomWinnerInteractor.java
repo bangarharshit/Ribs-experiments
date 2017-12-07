@@ -1,21 +1,20 @@
 package com.example.harshitbangar.ribswithoutdagger.root.logged_in.random_winner;
 
 import android.support.annotation.Nullable;
-import com.uber.rib.core.Bundle;
-import com.uber.rib.core.Interactor;
-import com.uber.rib.core.RibInteractor;
 import com.example.harshitbangar.ribswithoutdagger.root.UserName;
+import com.uber.rib.core.Bundle;
+import com.uber.rib.core.NonInjectableInteractor;
+import com.uber.rib.core.RibInteractor;
 import java.util.Random;
-import javax.inject.Inject;
-import javax.inject.Named;
 
 @RibInteractor
 public class RandomWinnerInteractor
-        extends Interactor<RandomWinnerInteractor.RandomWinnerPresenter, RandomWinnerRouter> {
+        extends
+    NonInjectableInteractor<RandomWinnerInteractor.RandomWinnerPresenter, RandomWinnerRouter> {
 
-    @Inject Listener listener;
-    @Inject @Named("player_one") UserName playerOne;
-    @Inject @Named("player_two") UserName playerTwo;
+    Listener listener;
+    UserName playerOne;
+    UserName playerTwo;
 
     @Override
     protected void didBecomeActive(@Nullable Bundle savedInstanceState) {

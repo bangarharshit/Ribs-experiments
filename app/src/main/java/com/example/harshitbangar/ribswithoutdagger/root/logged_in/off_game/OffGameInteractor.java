@@ -17,30 +17,28 @@
 package com.example.harshitbangar.ribswithoutdagger.root.logged_in.off_game;
 
 import android.support.annotation.Nullable;
-import com.google.common.collect.ImmutableMap;
-import com.uber.autodispose.ObservableScoper;
-import com.uber.rib.core.Bundle;
-import com.uber.rib.core.Interactor;
-import com.uber.rib.core.RibInteractor;
 import com.example.harshitbangar.ribswithoutdagger.root.UserName;
 import com.example.harshitbangar.ribswithoutdagger.root.logged_in.GameKey;
 import com.example.harshitbangar.ribswithoutdagger.root.logged_in.ScoreStream;
+import com.google.common.collect.ImmutableMap;
+import com.uber.autodispose.ObservableScoper;
+import com.uber.rib.core.Bundle;
+import com.uber.rib.core.NonInjectableInteractor;
+import com.uber.rib.core.RibInteractor;
 import io.reactivex.Observable;
 import io.reactivex.functions.Consumer;
 import java.util.List;
-import javax.inject.Inject;
-import javax.inject.Named;
 
 @RibInteractor
 public class OffGameInteractor
-    extends Interactor<OffGameInteractor.OffGamePresenter, OffGameRouter> {
+    extends NonInjectableInteractor<OffGameInteractor.OffGamePresenter, OffGameRouter> {
 
-  @Inject @Named("player_one") UserName playerOne;
-  @Inject @Named("player_two") UserName playerTwo;
-  @Inject Listener listener;
-  @Inject OffGamePresenter presenter;
-  @Inject ScoreStream scoreStream;
-  @Inject List<? extends GameKey> gameNames;
+  UserName playerOne;
+  UserName playerTwo;
+  Listener listener;
+  OffGamePresenter presenter;
+  ScoreStream scoreStream;
+  List<? extends GameKey> gameNames;
 
 
   @Override
