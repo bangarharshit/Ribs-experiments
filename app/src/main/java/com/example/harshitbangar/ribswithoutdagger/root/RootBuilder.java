@@ -18,22 +18,16 @@ package com.example.harshitbangar.ribswithoutdagger.root;
 
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
+import com.example.harshitbangar.ribswithoutdagger.R;
+import com.example.harshitbangar.ribswithoutdagger.lazy.SingleCheck;
 import com.example.harshitbangar.ribswithoutdagger.root.logged_in.LoggedInBuilder;
 import com.example.harshitbangar.ribswithoutdagger.root.logged_out.LoggedOutBuilder;
 import com.example.harshitbangar.ribswithoutdagger.root.logged_out.LoggedOutInteractor;
 import com.uber.rib.core.InteractorBaseComponent;
 import com.uber.rib.core.ViewBuilder;
-import com.example.harshitbangar.ribswithoutdagger.R;
-import dagger.Binds;
-import dagger.BindsInstance;
-import dagger.Provides;
-import java.lang.annotation.Retention;
-import javax.inject.Scope;
-
-import static java.lang.annotation.RetentionPolicy.CLASS;
 
 /**
- * Builder for the {@link RootScope}.
+ * Builder.
  */
 public class RootBuilder extends ViewBuilder<RootView, RootRouter, RootBuilder.ParentComponent> {
 
@@ -50,12 +44,8 @@ public class RootBuilder extends ViewBuilder<RootView, RootRouter, RootBuilder.P
   public RootRouter build(ViewGroup parentViewGroup) {
     RootView view = createView(parentViewGroup);
     RootInteractor interactor = new RootInteractor();
-    Component component = DaggerRootBuilder_Component.builder()
-        .parentComponent(getDependency())
-        .view(view)
-        .interactor(interactor)
-        .build();
-    return component.rootRouter();
+    Component component = new Component(interactor, view);
+    return component.rootRouter;
   }
 
   @Override
@@ -67,65 +57,42 @@ public class RootBuilder extends ViewBuilder<RootView, RootRouter, RootBuilder.P
     // Define dependencies required from your parent interactor here.
   }
 
-  @dagger.Module
-  public abstract static class Module {
-
-    @RootScope
-    @Provides
-    static LoggedOutInteractor.Listener loggedOutListener(RootInteractor rootInteractor) {
-      return rootInteractor.new LoggedOutListener();
-    }
-
-    @RootScope
-    @Binds
-    abstract RootInteractor.RootPresenter presenter(RootView view);
-
-    @RootScope
-    @Provides
-    static RootRouter router(Component component, RootView view, RootInteractor interactor) {
-      return new RootRouter(
-          view,
-          interactor,
-          component,
-          new LoggedOutBuilder(component),
-          new LoggedInBuilder(component));
-    }
-  }
-
-  @RootScope
-  @dagger.Component(
-      modules = Module.class,
-      dependencies = ParentComponent.class
-  )
-  interface Component extends
+  static class Component implements
       InteractorBaseComponent<RootInteractor>,
       LoggedOutBuilder.ParentComponent,
-      LoggedInBuilder.ParentComponent,
-      BuilderComponent {
+      LoggedInBuilder.ParentComponent {
 
-    @dagger.Component.Builder
-    interface Builder {
+    private final RootView rootView;
+    private final SingleCheck<LoggedOutInteractor.Listener> loggedOutListener;
+    private final RootRouter rootRouter;
 
-      @BindsInstance
-      Builder interactor(RootInteractor interactor);
-
-      @BindsInstance
-      Builder view(RootView view);
-
-      Builder parentComponent(ParentComponent component);
-
-      Component build();
+    public Component(final RootInteractor rootInteractor, final RootView rootView) {
+      this.rootView = rootView;
+      loggedOutListener = new SingleCheck<LoggedOutInteractor.Listener>() {
+        @Override public LoggedOutInteractor.Listener create() {
+          return rootInteractor.new LoggedOutListener();
+        }
+      };
+      // Note we are escaping this before object construction. This is safe here but an anti-pattern.
+      rootRouter = new RootRouter(
+          rootView,
+          rootInteractor,
+          this,
+          new LoggedOutBuilder(this),
+          new LoggedInBuilder(this));
     }
-  }
 
-  interface BuilderComponent {
+    @Override public RootView rootView() {
+      return rootView;
+    }
 
-    RootRouter rootRouter();
-  }
+    @Override public LoggedOutInteractor.Listener listener() {
+      return loggedOutListener.get();
+    }
 
-  @Scope
-  @Retention(CLASS)
-  @interface RootScope {
-
+    @Override public void inject(RootInteractor interactor) {
+      interactor.presenter = rootView;
+      interactor.setPresenter(rootView);
+    }
   }
 }
