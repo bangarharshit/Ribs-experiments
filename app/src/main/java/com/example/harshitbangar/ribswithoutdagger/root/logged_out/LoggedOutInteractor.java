@@ -21,6 +21,7 @@ import android.util.Pair;
 import com.example.harshitbangar.ribswithoutdagger.root.UserName;
 import com.uber.rib.core.Bundle;
 import com.uber.rib.core.Interactor;
+import com.uber.rib.core.NonInjectableInteractor;
 import com.uber.rib.core.RibInteractor;
 import io.reactivex.Observable;
 import io.reactivex.functions.Consumer;
@@ -31,10 +32,10 @@ import javax.inject.Inject;
  */
 @RibInteractor
 public class LoggedOutInteractor
-    extends Interactor<LoggedOutInteractor.LoggedOutPresenter, LoggedOutRouter> {
+    extends NonInjectableInteractor<LoggedOutInteractor.LoggedOutPresenter, LoggedOutRouter> {
 
-  @Inject Listener listener;
-  @Inject LoggedOutPresenter presenter;
+  Listener listener;
+  LoggedOutPresenter presenter;
 
   @Override
   protected void didBecomeActive(@Nullable Bundle savedInstanceState) {

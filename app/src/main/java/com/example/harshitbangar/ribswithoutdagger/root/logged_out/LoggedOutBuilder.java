@@ -49,11 +49,7 @@ public class LoggedOutBuilder
   public LoggedOutRouter build(ViewGroup parentViewGroup) {
     LoggedOutView view = createView(parentViewGroup);
     LoggedOutInteractor interactor = new LoggedOutInteractor();
-    Component component = DaggerLoggedOutBuilder_Component.builder()
-        .parentComponent(getDependency())
-        .view(view)
-        .interactor(interactor)
-        .build();
+    Component component = new Component(getDependency(), view, interactor);
     return component.loggedoutRouter();
   }
 
@@ -67,59 +63,30 @@ public class LoggedOutBuilder
     LoggedOutInteractor.Listener listener();
   }
 
-  @dagger.Module
-  public abstract static class Module {
+  class Component implements InteractorBaseComponent<LoggedOutInteractor> {
+    private final ParentComponent parentComponent;
+    private final LoggedOutRouter loggedOutRouter;
+    private final LoggedOutInteractor loggedOutInteractor;
+    private final LoggedOutView loggedOutView;
 
-    @LoggedOutScope
-    @Binds
-    abstract LoggedOutInteractor.LoggedOutPresenter presenter(LoggedOutView view);
-
-    @LoggedOutScope
-    @Provides
-    static LoggedOutRouter router(
-        Component component,
+    public Component(
+        ParentComponent parentComponent,
         LoggedOutView view,
         LoggedOutInteractor interactor) {
-      return new LoggedOutRouter(view, interactor, component);
+      this.loggedOutInteractor = interactor;
+      this.loggedOutView = view;
+      this.parentComponent = parentComponent;
+      this.loggedOutRouter = new LoggedOutRouter(view, interactor, this);
     }
 
-    // TODO: Create provider methods for dependencies created by this Rib. These should be static.
-  }
-
-  @LoggedOutScope
-  @dagger.Component(modules = Module.class,
-      dependencies = ParentComponent.class)
-  interface Component extends InteractorBaseComponent<LoggedOutInteractor>, BuilderComponent {
-
-    @dagger.Component.Builder
-    interface Builder {
-
-      @BindsInstance
-      Builder interactor(LoggedOutInteractor interactor);
-
-      @BindsInstance
-      Builder view(LoggedOutView view);
-
-      Builder parentComponent(ParentComponent component);
-
-      Component build();
+    public LoggedOutRouter loggedoutRouter() {
+      return loggedOutRouter;
     }
-  }
 
-  interface BuilderComponent {
-
-    LoggedOutRouter loggedoutRouter();
-  }
-
-  @Scope
-  @Retention(CLASS)
-  @interface LoggedOutScope {
-
-  }
-
-  @Qualifier
-  @Retention(CLASS)
-  @interface LoggedOutInternal {
-
+    @Override public void inject(LoggedOutInteractor interactor) {
+      loggedOutInteractor.presenter = loggedOutView;
+      loggedOutInteractor.setPresenter(loggedOutView);
+      loggedOutInteractor.listener = parentComponent.listener();
+    }
   }
 }

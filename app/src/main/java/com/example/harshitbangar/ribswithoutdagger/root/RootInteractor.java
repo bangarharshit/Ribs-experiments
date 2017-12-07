@@ -20,18 +20,18 @@ import android.support.annotation.Nullable;
 import com.example.harshitbangar.ribswithoutdagger.root.logged_out.LoggedOutInteractor;
 import com.uber.rib.core.Bundle;
 import com.uber.rib.core.Interactor;
+import com.uber.rib.core.NonInjectableInteractor;
 import com.uber.rib.core.RibInteractor;
-import javax.inject.Inject;
 
 /**
- * Coordinates Business Logic for {@link RootBuilder.RootScope}.
+ * Coordinates Business Logic for.
  */
 @RibInteractor
 public class RootInteractor
-    extends Interactor<RootInteractor.RootPresenter, RootRouter>
+    extends NonInjectableInteractor<RootInteractor.RootPresenter, RootRouter>
     implements RootActionableItem {
 
-  @Inject RootPresenter presenter;
+  RootPresenter presenter;
 
   @Override
   protected void didBecomeActive(@Nullable Bundle savedInstanceState) {
