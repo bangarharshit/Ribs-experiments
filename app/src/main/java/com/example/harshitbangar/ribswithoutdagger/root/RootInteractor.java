@@ -16,11 +16,20 @@
 
 package com.example.harshitbangar.ribswithoutdagger.root;
 
+import android.content.Context;
 import android.support.annotation.Nullable;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.TextView;
+import com.example.harshitbangar.ribswithoutdagger.R;
 import com.example.harshitbangar.ribswithoutdagger.root.logged_out.LoggedOutInteractor;
 import com.uber.rib.core.Bundle;
 import com.uber.rib.core.Interactor;
 import com.uber.rib.core.RibInteractor;
+import com.uber.rib.core.screenstack.ScreenStackBase;
+import com.uber.rib.core.screenstack.ViewProvider;
+import java.util.Random;
 import javax.inject.Inject;
 
 /**
@@ -32,11 +41,38 @@ public class RootInteractor
     implements RootActionableItem {
 
   @Inject RootPresenter presenter;
+  @Inject ScreenStackBase screenStackBase;
+  @Inject Context context;
 
   @Override
   protected void didBecomeActive(@Nullable Bundle savedInstanceState) {
     super.didBecomeActive(savedInstanceState);
-    getRouter().attachLoggedOut();
+    //getRouter().attachLoggedOut();
+    pushScreen();
+  }
+
+  private void pushScreen() {
+    screenStackBase.pushScreen(new ViewProvider() {
+      @Override public View buildView(ViewGroup parentView) {
+        View root = LayoutInflater.from(context).inflate(R.layout.view_test, parentView, false);
+        TextView arbit = root.findViewById(R.id.arbit);
+        arbit.setText(String.valueOf(new Random().nextInt(100)));
+        root.setOnClickListener(new View.OnClickListener() {
+          @Override public void onClick(View view) {
+            pushScreen();
+          }
+        });
+        return root;
+      }
+    });
+  }
+
+  @Override public boolean handleBackPress() {
+    if (screenStackBase.size() > 0) {
+      screenStackBase.popScreen();
+      return true;
+    }
+    return super.handleBackPress();
   }
 
   class LoggedOutListener implements LoggedOutInteractor.Listener {
