@@ -16,14 +16,19 @@
 
 package com.example.harshitbangar.ribswithoutdagger.root;
 
+import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
+import com.example.harshitbangar.ribswithoutdagger.ScreenStackImpl;
 import com.example.harshitbangar.ribswithoutdagger.root.logged_in.LoggedInBuilder;
 import com.example.harshitbangar.ribswithoutdagger.root.logged_out.LoggedOutBuilder;
 import com.example.harshitbangar.ribswithoutdagger.root.logged_out.LoggedOutInteractor;
+import com.example.harshitbangar.ribswithoutdagger.transition.CrossfadeTransition;
+import com.example.harshitbangar.ribswithoutdagger.transition.NoAnimationTransition;
 import com.uber.rib.core.InteractorBaseComponent;
 import com.uber.rib.core.ViewBuilder;
 import com.example.harshitbangar.ribswithoutdagger.R;
+import com.uber.rib.core.screenstack.ScreenStackBase;
 import dagger.Binds;
 import dagger.BindsInstance;
 import dagger.Provides;
@@ -82,6 +87,12 @@ public class RootBuilder extends ViewBuilder<RootView, RootRouter, RootBuilder.P
 
     @RootScope
     @Provides
+    static Context context(RootView view) {
+      return view.getContext();
+    }
+
+    @RootScope
+    @Provides
     static RootRouter router(Component component, RootView view, RootInteractor interactor) {
       return new RootRouter(
           view,
@@ -89,6 +100,12 @@ public class RootBuilder extends ViewBuilder<RootView, RootRouter, RootBuilder.P
           component,
           new LoggedOutBuilder(component),
           new LoggedInBuilder(component));
+    }
+
+    @RootScope
+    @Provides
+    static ScreenStackBase screenStackBase(RootView view) {
+      return new ScreenStackImpl(view, new CrossfadeTransition());
     }
   }
 
