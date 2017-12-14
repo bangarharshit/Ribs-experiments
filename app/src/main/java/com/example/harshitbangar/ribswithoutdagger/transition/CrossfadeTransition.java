@@ -12,19 +12,20 @@ public class CrossfadeTransition implements Transition {
 
   @Override
   public void animate(
-      final View from, final View to, ScreenStackImpl.NavigationType navType, ScreenStackImpl.Direction direction, final Callback callback) {
+      final View from, final View to, ScreenStackImpl.Direction direction, final Callback callback) {
+
+
     to.setAlpha(0f);
-    from.setAlpha(1f);
     to.setVisibility(VISIBLE);
-    from.setVisibility(VISIBLE);
+
+
 
     from.animate().alpha(0f).setListener(new AnimatorListenerAdapter() {
       @Override
       public void onAnimationEnd(Animator animation) {
         from.setVisibility(GONE);
         to.animate().alpha(1f).setListener(new AnimatorListenerAdapter() {
-          @Override
-          public void onAnimationEnd(Animator animation) {
+          @Override public void onAnimationEnd(Animator animation) {
             callback.onAnimationEnd();
           }
         }).start();

@@ -7,7 +7,7 @@ public class NoAnimationTransition implements Transition {
 
   @Override
   public void animate(
-      View from, View to, ScreenStackImpl.NavigationType navType, ScreenStackImpl.Direction direction, Callback callback) {
+      View from, View to, ScreenStackImpl.Direction direction, Callback callback) {
     callback.onAnimationEnd();
   }
 

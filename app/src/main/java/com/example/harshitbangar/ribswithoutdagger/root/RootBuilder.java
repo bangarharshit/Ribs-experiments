@@ -23,6 +23,8 @@ import com.example.harshitbangar.ribswithoutdagger.ScreenStackImpl;
 import com.example.harshitbangar.ribswithoutdagger.root.logged_in.LoggedInBuilder;
 import com.example.harshitbangar.ribswithoutdagger.root.logged_out.LoggedOutBuilder;
 import com.example.harshitbangar.ribswithoutdagger.root.logged_out.LoggedOutInteractor;
+import com.example.harshitbangar.ribswithoutdagger.transition.CrossfadeTransition;
+import com.example.harshitbangar.ribswithoutdagger.transition.NoAnimationTransition;
 import com.uber.rib.core.InteractorBaseComponent;
 import com.uber.rib.core.ViewBuilder;
 import com.example.harshitbangar.ribswithoutdagger.R;
@@ -103,7 +105,7 @@ public class RootBuilder extends ViewBuilder<RootView, RootRouter, RootBuilder.P
     @RootScope
     @Provides
     static ScreenStackBase screenStackBase(RootView view) {
-      return new ScreenStackImpl(view);
+      return new ScreenStackImpl(view, new CrossfadeTransition());
     }
   }
 
